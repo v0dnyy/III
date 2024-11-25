@@ -61,10 +61,10 @@ def model_validation(model_w, path_to_data):
     print(metrics.box.map, metrics.box.map50, metrics.box.map75, metrics.box.maps)
 
 
-def process_video_with_detect(model_w, input_video_path, from_cam=False, show_video=True, save_video=False,
+def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False, show_video=True, save_video=False,
                               save_logs=False,
                               output_video_path="output_video.mp4"):
-    model = YOLO(model_w)
+    model = YOLO(path_to_model_w)
     result_json = []
     model.fuse()
     # Open the input video file
@@ -119,11 +119,11 @@ def process_video_with_detect(model_w, input_video_path, from_cam=False, show_vi
 
 def main():
     detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
-    # process_video_with_detect(r"III\yolo_s_v11_dropout_05_best.pt",
-    #                           r"III\demo.mp4",
-    #                           from_cam=False, show_video=True,
-    #                           save_video=True, save_logs=False,
-    #                           output_video_path="demo_detected.mp4")
+    process_video_with_detect(r"III\yolo_s_v11_dropout_05_best.pt",
+                              r"III\demo.mp4",
+                              from_cam=False, show_video=True,
+                              save_video=True, save_logs=False,
+                              output_video_path="demo_detected.mp4")
 
 
 if __name__ == '__main__':

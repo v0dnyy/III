@@ -2,6 +2,27 @@ import cv2
 from ultralytics import YOLO
 import random
 import os
+import json
+
+
+def log_detected_objects(model, results):
+    boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
+    classes = results[0].boxes.cls.cpu().numpy().astype(int)
+    conf = results[0].boxes.conf.cpu().numpy().astype(float)
+    res = []
+    for box, clss, conf in zip(boxes, classes, conf):
+        res.append({
+            "class": model.names[int(clss)],
+            "confidence": conf.item(),
+            "bounding_box": {
+                "x1": box[0].item(),
+                "y1": box[1].item(),
+                "x2": box[2].item(),
+                "y2": box[3].item()
+            }
+        })
+    return res
+
 
 def draw_bounding_boxes(model, frame, results):
     boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
@@ -28,27 +49,30 @@ def detect_dir_files(model_w, path_to_dir):
     model = YOLO(model_w)
     for filename in os.listdir(path_to_dir):
         file_path = os.path.join(path_to_dir, filename)
-        model.predict(file_path, save = True, verbose=False, save_txt = True)
-    
+        result = model.predict(file_path, save=True, verbose=False)
+        with open(filename[:len(filename) - 4]+"_detected_objects.json", 'w+', encoding='utf-8') as file:
+            json.dump(log_detected_objects(model, result), file, ensure_ascii=False, indent=4)
+
 
 def model_validation(model_w, path_to_data):
     model = YOLO(model_w)
-    metrics = model.val(data = path_to_data)
+    metrics = model.val(data=path_to_data)
     print(model.names)
     print(metrics.box.map, metrics.box.map50, metrics.box.map75, metrics.box.maps)
 
 
-
-def process_video_with_detect(model_w, input_video_path, from_cam = False, show_video=True, save_video=False,
+def process_video_with_detect(model_w, input_video_path, from_cam=False, show_video=True, save_video=False,
+                              save_logs=False,
                               output_video_path="output_video.mp4"):
     model = YOLO(model_w)
+    result_json = []
     model.fuse()
     # Open the input video file
     if from_cam:
         cap = cv2.VideoCapture(0)
-    else: 
+    else:
         cap = cv2.VideoCapture(input_video_path)
-        
+
     if not cap.isOpened():
         raise Exception("Error: Could not open video file.")
 
@@ -70,9 +94,14 @@ def process_video_with_detect(model_w, input_video_path, from_cam = False, show_
 
         if results[0].boxes != None:
             draw_bounding_boxes(model, frame, results)
+            result_json.append(log_detected_objects(model, results))
 
         if save_video:
             out.write(frame)
+
+        if save_logs:
+            with open('detected_objects.json', 'w+', encoding='utf-8') as file:
+                json.dump(result_json, file, ensure_ascii=False, indent=4)
 
         if show_video:
             frame = cv2.resize(frame, (0, 0), fx=0.6, fy=0.6)
@@ -89,9 +118,12 @@ def process_video_with_detect(model_w, input_video_path, from_cam = False, show_
 
 
 def main():
-    detect_dir_files(r"III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
-    process_video_with_detect(r"III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Videos\2024-10-18 20-12-35.mp4", from_cam = False, show_video=True, save_video=False,
-                          output_video_path="yolo_n_v11_dropout_output_video.mp4")
+    detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
+    # process_video_with_detect(r"III\yolo_s_v11_dropout_05_best.pt",
+    #                           r"III\demo.mp4",
+    #                           from_cam=False, show_video=True,
+    #                           save_video=True, save_logs=False,
+    #                           output_video_path="demo_detected.mp4")
 
 
 if __name__ == '__main__':

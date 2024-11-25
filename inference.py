@@ -45,8 +45,8 @@ def draw_bounding_boxes(model, frame, results):
     return frame
 
 
-def detect_dir_files(model_w, path_to_dir):
-    model = YOLO(model_w)
+def detect_dir_files(path_to_model_w, path_to_dir):
+    model = YOLO(path_to_model_w)
     for filename in os.listdir(path_to_dir):
         file_path = os.path.join(path_to_dir, filename)
         result = model.predict(file_path, save=True, verbose=False)
@@ -54,8 +54,8 @@ def detect_dir_files(model_w, path_to_dir):
             json.dump(log_detected_objects(model, result), file, ensure_ascii=False, indent=4)
 
 
-def model_validation(model_w, path_to_data):
-    model = YOLO(model_w)
+def model_validation(path_to_model_w, path_to_data):
+    model = YOLO(path_to_model_w)
     metrics = model.val(data=path_to_data)
     print(model.names)
     print(metrics.box.map, metrics.box.map50, metrics.box.map75, metrics.box.maps)

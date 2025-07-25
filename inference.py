@@ -118,8 +118,8 @@ def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False,
 
 
 def main():
-    detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
-    process_video_with_detect(r"III\yolo_s_v11_dropout_05_best.pt",
+    # detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
+    process_video_with_detect(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt",
                               r"III\demo.mp4",
                               from_cam=False, show_video=True,
                               save_video=True, save_logs=False,

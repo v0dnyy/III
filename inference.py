@@ -3,15 +3,33 @@ from ultralytics import YOLO
 import random
 import os
 import json
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='UAV YOLO model inference')
+    parser.add_argument('--path_to_model_w', type=str, required=True, help='model weight path')
+    parser.add_argument('--from_cam', action='store_true', help='capture stream from camera')
+    parser.add_argument('--input_video_path', type=str, default=None, help='path to input video')
+    parser.add_argument('--show_video', action='store_true', help='Show processing video')
+    parser.add_argument('--save_video', action='store_true', help='save processed video')
+    parser.add_argument('--save_logs', action='store_true', help='save logs or not')
+    parser.add_argument('--output_video_path', type=str, default="output_video.mp4", help='path to output video')
+    args = parser.parse_args()
+    if args.from_cam and args.input_video_path:
+        parser.error("Use either --from_cam or --input_video_path, not both.")
+    if args.save_video and args.output_video_path == 'output_video.mp4':
+        print("[INFO] Output video will be saved to default path: ./output_video.mp4")
+    return args
 
 
 def log_detected_objects(model, results):
     boxes = results[0].boxes.xyxy.cpu().numpy().astype(int)
     classes = results[0].boxes.cls.cpu().numpy().astype(int)
     conf = results[0].boxes.conf.cpu().numpy().astype(float)
-    res = []
+    objects = []
     for box, clss, conf in zip(boxes, classes, conf):
-        res.append({
+        objects.append({
             "class": model.names[int(clss)],
             "confidence": conf.item(),
             "bounding_box": {
@@ -21,7 +39,7 @@ def log_detected_objects(model, results):
                 "y2": box[3].item()
             }
         })
-    return res
+    return objects
 
 
 def draw_bounding_boxes(model, frame, results):
@@ -50,7 +68,7 @@ def detect_dir_files(path_to_model_w, path_to_dir):
     for filename in os.listdir(path_to_dir):
         file_path = os.path.join(path_to_dir, filename)
         result = model.predict(file_path, save=True, verbose=False)
-        with open(filename[:len(filename) - 4]+"_detected_objects.json", 'w+', encoding='utf-8') as file:
+        with open(filename[:len(filename) - 4] + "_detected_objects.json", 'w+', encoding='utf-8') as file:
             json.dump(log_detected_objects(model, result), file, ensure_ascii=False, indent=4)
 
 
@@ -61,7 +79,7 @@ def model_validation(path_to_model_w, path_to_data):
     print(metrics.box.map, metrics.box.map50, metrics.box.map75, metrics.box.maps)
 
 
-def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False, show_video=True, save_video=False,
+def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False, show_video=False, save_video=False,
                               save_logs=False,
                               output_video_path="output_video.mp4"):
     model = YOLO(path_to_model_w)
@@ -94,7 +112,9 @@ def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False,
 
         if results[0].boxes != None:
             draw_bounding_boxes(model, frame, results)
-            result_json.append(log_detected_objects(model, results))
+            result_json.append({
+                "detected_objects": log_detected_objects(model, results)
+            })
 
         if save_video:
             out.write(frame)
@@ -119,11 +139,14 @@ def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False,
 
 def main():
     # detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
-    process_video_with_detect(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt",
-                              r"III\demo.mp4",
-                              from_cam=False, show_video=True,
-                              save_video=True, save_logs=False,
-                              output_video_path="demo_detected.mp4")
+    # process_video_with_detect(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt",
+    #                           r"III\demo.mp4",
+    #                           from_cam=False, show_video=True,
+    #                           save_video=True, save_logs=False,
+    #                           output_video_path="demo_detected.mp4")
+    args = parse_args()
+    process_video_with_detect(args.path_to_model_w, args.input_video_path, args.from_cam, args.show_video,
+                              args.save_video, args.save_logs, args.output_video_path)
 
 
 if __name__ == '__main__':

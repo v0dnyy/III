@@ -15,9 +15,10 @@ def parse_args():
     parser.add_argument('--save_video', action='store_true', help='save processed video')
     parser.add_argument('--save_logs', action='store_true', help='save logs or not')
     parser.add_argument('--output_video_path', type=str, default="output_video.mp4", help='path to output video')
+    parser.add_argument('--input_dir', type=str, default=None, help='path to input directory with files')
     args = parser.parse_args()
-    if args.from_cam and args.input_video_path:
-        parser.error("Use either --from_cam or --input_video_path, not both.")
+    if sum(bool(x) for x in [args.from_cam, args.input_video_path, args.input_dir]) > 1:
+        parser.error("Use exactly one of --from_cam, --input_video_path or --input_dir.")
     if args.save_video and args.output_video_path == 'output_video.mp4':
         print("[INFO] Output video will be saved to default path: ./output_video.mp4")
     return args
@@ -64,12 +65,21 @@ def draw_bounding_boxes(model, frame, results):
 
 
 def detect_dir_files(path_to_model_w, path_to_dir):
+    # logs_dir = os.path.join(path_to_dir, "logs")
+    logs_dir = "./logs"
+    if not os.path.exists(logs_dir):
+        os.makedirs(logs_dir)
+
     model = YOLO(path_to_model_w)
     for filename in os.listdir(path_to_dir):
         file_path = os.path.join(path_to_dir, filename)
         result = model.predict(file_path, save=True, verbose=False)
-        with open(filename[:len(filename) - 4] + "_detected_objects.json", 'w+', encoding='utf-8') as file:
+        log_filename = filename.rsplit('.', 1)[0] + "_detected_objects.json"
+        log_filepath = os.path.join(logs_dir, log_filename)
+        with open(log_filepath, 'w+', encoding='utf-8') as file:
             json.dump(log_detected_objects(model, result), file, ensure_ascii=False, indent=4)
+
+        print(f"[INFO] Лог сохранён: {log_filepath}")
 
 
 def model_validation(path_to_model_w, path_to_data):
@@ -145,8 +155,11 @@ def main():
     #                           save_video=True, save_logs=False,
     #                           output_video_path="demo_detected.mp4")
     args = parse_args()
-    process_video_with_detect(args.path_to_model_w, args.input_video_path, args.from_cam, args.show_video,
-                              args.save_video, args.save_logs, args.output_video_path)
+    if args.input_dir:
+        detect_dir_files(args.path_to_model_w, args.input_dir)
+    else:
+        process_video_with_detect(args.path_to_model_w, args.input_video_path, args.from_cam, args.show_video,
+                                  args.save_video, args.save_logs, args.output_video_path)
 
 
 if __name__ == '__main__':

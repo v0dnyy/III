@@ -65,7 +65,6 @@ def draw_bounding_boxes(model, frame, results):
 
 
 def detect_dir_files(path_to_model_w, path_to_dir):
-    # logs_dir = os.path.join(path_to_dir, "logs")
     logs_dir = "./logs"
     if not os.path.exists(logs_dir):
         os.makedirs(logs_dir)
@@ -148,12 +147,6 @@ def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False,
 
 
 def main():
-    # detect_dir_files(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt", r"C:\Users\vodnyy\Desktop\work_III\datasets\sample")
-    # process_video_with_detect(r"C:\Users\vodnyy\III\III\yolo_s_v11_dropout_05_best.pt",
-    #                           r"III\demo.mp4",
-    #                           from_cam=False, show_video=True,
-    #                           save_video=True, save_logs=False,
-    #                           output_video_path="demo_detected.mp4")
     args = parse_args()
     if args.input_dir:
         detect_dir_files(args.path_to_model_w, args.input_dir)

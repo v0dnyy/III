@@ -119,6 +119,11 @@ def process_video_with_detect(path_to_model_w, input_video_path, from_cam=False,
             break
         results = model.predict(frame, iou=0.4, conf=0.6, imgsz=640, verbose=False)
 
+        if results and results[0].boxes:
+            # Проверяем, есть ли обнаруженные объекты
+            if len(results[0].boxes) > 0:
+                print("Внимание, обнаружен посторонний объект! Требуется вмешательство оператора")
+
         if results[0].boxes != None:
             draw_bounding_boxes(model, frame, results)
             result_json.append({

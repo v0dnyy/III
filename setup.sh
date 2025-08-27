@@ -4,7 +4,8 @@ set -e
 
 REPO_URL="https://github.com/v0dnyy/III.git"
 SCRIPT_TO_RUN="inference.py"
-SCRIPT_ARGS="--arg1 value1 --arg2 value2"
+SCRIPT_ARGS="--path_to_model_w yolo_n_v11_dropout_best.pt --from_cam --show_video --save_video --save_logs"
+
 
 echo "--- Начало установки и запуска ---"
 
@@ -39,7 +40,7 @@ sudo apt-get update
 sudo apt-get -y install libcusparselt0 libcusparselt-dev
 
 echo "Запускаем скрипт $SCRIPT_TO_RUN..."
-python $SCRIPT_TO_RUN $SCRIPT_ARGS
+python "$SCRIPT_TO_RUN" "$SCRIPT_ARGS"
 
 echo "=== Скрипт завершил работу ==="
 deactivate

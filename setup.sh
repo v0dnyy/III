@@ -55,6 +55,10 @@ sudo dpkg -i cuda-keyring_1.1-1_all.deb
 sudo apt-get update
 sudo apt-get -y install libcusparselt0 libcusparselt-dev
 
+pip install https://github.com/ultralytics/assets/releases/download/v0.0.0/onnxruntime_gpu-1.20.0-cp310-cp310-linux_aarch64.whl
+pip install onnx==1.15.0
+pip install numpy==1.23.5
+
 echo "Запускаем скрипт $SCRIPT_TO_RUN..."
 
 python "$SCRIPT_TO_RUN" "${SCRIPT_ARGS[@]}"
